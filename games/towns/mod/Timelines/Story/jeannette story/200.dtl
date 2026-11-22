@@ -1,0 +1,80 @@
+# #200 act - JEANNETTE INTRODUCTION
+do Bus.emit_play_music("in_scenes")
+set {hide_textbox} = true
+set {background} = "1"
+
+
+[wait time="2.0"]
+set {background_fade} = true
+set {background} = "2"
+[wait time="1.0"]
+set {hide_textbox} = false
+protagonist: (Who is...) #id:STORY_200_01
+set {hide_textbox} = true
+set {background_fade} = false
+set {background} = "3"
+protagonist: ... #id:STORY_200_02
+# #3
+
+
+set {hide_textbox} = false
+set {background_fade} = true
+set {background} = "4"
+[wait time="1.0"]
+# #4
+
+join jeannette (introduction_smile) center
+jeannette: Hey there! #id:STORY_200_03
+protagonist: Uh— #id:STORY_200_04
+protagonist: Hi... #id:STORY_200_05
+jeannette: You must be {player_name}, right? #id:STORY_200_06
+protagonist: Yeah, that's me... #id:STORY_200_07
+update jeannette (introduction_smile_open)
+jeannette: Nice to meet you, {player_name}. #id:STORY_200_08
+jeannette: I'm Jeannette. #id:STORY_200_09
+update jeannette (introduction_laugh_closed)
+jeannette: Claire's best friend! #id:STORY_200_10
+protagonist: ... #id:STORY_200_11
+protagonist: Oh, nice to meet you. #id:STORY_200_12
+update jeannette (introduction_laugh)
+jeannette: So Claire finally got herself a new boyfriend. #id:STORY_200_13
+update jeannette (introduction_smile_open)
+jeannette: I didn't know she liked them young... #id:STORY_200_14
+protagonist: Huh? #id:STORY_200_15
+protagonist: I'm not her boyfriend... #id:STORY_200_16
+if {relationship} == "aunt":
+	protagonist: I'm Claire's nephew. #id:STORY_200_16A_01
+elif {relationship} == "stepaunt":
+	protagonist: I'm Claire's nephew. #id:STORY_200_16B_01
+elif {relationship} == "mom":
+	protagonist: Я сын Клэр.
+else:
+	protagonist: I'm Claire's new guest. #id:STORY_200_16C_01
+protagonist: I will stay for a while. #id:STORY_200_17
+update jeannette (introduction_smile)
+jeannette: I know, sweetheart. #id:STORY_200_18
+update jeannette (introduction_smile_open)
+jeannette: I was just playing, hehe! #id:STORY_200_19
+update jeannette (introduction_smile) right
+
+join Claire (default) left
+
+Claire: Hey! #id:STORY_200_20
+update Claire (smile)
+Claire: Oh, you two met already! #id:STORY_200_21
+jeannette: Yep! #id:STORY_200_22
+update jeannette (introduction_laugh_closed)
+jeannette: I finally met your man, hehe! #id:STORY_200_23
+update Claire (default)
+Claire: Stop with that... #id:STORY_200_24
+Claire: It's weird you know? #id:STORY_200_25
+update jeannette (introduction_smile) right
+jeannette: Sure... #id:STORY_200_26
+update Claire (smile_open) left
+Claire: Let's just have some food. #id:STORY_200_27
+leave jeannette
+leave Claire
+do Bus.emit_play_music("morning1")
+
+do GameController.enable_skip(false)
+[end_timeline]

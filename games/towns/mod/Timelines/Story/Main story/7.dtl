@@ -1,0 +1,121 @@
+do Bus.emit_play_music("in_scenes")
+[wait time = "4.0"]
+
+(...) #id:STORY_07_01
+
+[wait time="1.0"]
+
+protagonist: Uhh… Claire? #id:STORY_07_02
+protagonist: You okay? #id:STORY_07_03
+Claire: Hey, sweetie. #id:STORY_07_04
+Claire: My phone... is under the couch... #id:STORY_07_05
+Claire: I'm just trying to get it... #id:STORY_07_06
+protagonist: How did that happen? #id:STORY_07_07
+Claire: I don't k— #id:STORY_07_08
+Claire: Ugh. #id:STORY_07_09
+
+set {background} = "2"
+
+join Claire (hands_waist_default) center
+Claire: I was cleaning and then I checked a notif... #id:STORY_07_10
+Claire: It just slipped out of my hand. #id:STORY_07_11
+update Claire (hands_waist_smile_open)
+Claire: I'm just a lil clumsy sometimes! #id:STORY_07_12
+protagonist: Okay... #id:STORY_07_13
+protagonist: So... Need some help? #id:STORY_07_14
+update Claire (hands_waist_laugh)
+Claire: That'd be great, honey. #id:STORY_07_15
+update Claire (smile)
+Claire: We could move the couch for a second. #id:STORY_07_16
+protagonist: Sure, let's do that. #id:STORY_07_17
+leave Claire
+
+set {background} = "100"
+
+(...) #id:STORY_07_18
+(...) #id:STORY_07_19
+
+
+set {background} = "2"
+
+join Claire (hands_waist_default) center
+Claire: Ugh! #id:STORY_07_20
+update Claire (hands_waist_smile_open)
+Claire: Thanks, honey. #id:STORY_07_21
+update Claire (hands_waist_laugh)
+Claire: I couldn't have done it without you. #id:STORY_07_22
+protagonist: Yeah, no problem. #id:STORY_07_23
+update Claire (hands_waist_default)
+Claire: Hmm... #id:STORY_07_24
+Claire: Why are you  always acting like this? #id:STORY_07_25
+protagonist: What do you mean? #id:STORY_07_26
+update Claire (smile_open)
+if {relationship} == "aunt":
+	Claire: You don't have to be this stiff around me. #id:STORY_07_26A_01
+	Claire: We are family, sweetie... #id:STORY_07_26A_02
+	Claire: Come here... #id:STORY_07_26A_03
+elif {relationship} == "mom":
+	Claire: Тебе не нужно так зажиматься рядом со мной.
+	Claire: Я же твоя мама, солнышко...
+	Claire: Иди ко мне...
+else:
+	Claire: You don't have to be this stiff around me. #id:STORY_07_26B_01
+	Claire: Come here... #id:STORY_07_26B_02
+leave Claire
+
+set {background} = "4"
+[wait time="3.0"]
+
+Claire: You don't need to be shy with me! #id:STORY_07_27
+protagonist: Okay, okay, I get it! #id:STORY_07_28
+
+
+set {background} = "5"
+[wait time="2.0"]
+
+Claire: Hehe! #id:STORY_07_29
+
+set {background_fade} = false
+set {background} = "6"
+do Bus.set_textbox_visibility(false)
+[wait time="1.0"]
+
+do Bus.emit_play_music("tension")
+Claire: Eh— #id:STORY_07_30
+[wait time="1.0"]
+Claire: ... #id:STORY_07_31
+Claire: Hon— #id:STORY_07_32
+
+set {background_fade} = false
+set {background} = "7"
+do Bus.set_textbox_visibility(false)
+[wait time="1.0"]
+
+Claire: Uhhh. #id:STORY_07_33
+Claire: Hhh... #id:STORY_07_34
+Claire: (Wha—?) #id:STORY_07_35
+Claire: (He's not... #id:STORY_07_36
+Claire: Doing it on purpose, right?) #id:STORY_07_37
+Claire: (...) #id:STORY_07_38
+
+set {hold_black} = 1.0
+set {background} = "2"
+
+join Claire (laugh_concern) center
+
+Claire: You see honey? You don't have to be so stiff around me. #id:STORY_07_39
+protagonist: Sure... #id:STORY_07_40
+Claire: Thanks for the help. #id:STORY_07_41
+update Claire (concern)
+Claire: See you later, sweetie... #id:STORY_07_42
+update Claire (laugh_concern)
+Claire: I got some stuff to do... #id:STORY_07_43
+leave Claire
+[wait time="1.0"]
+protagonist: (WHAT AM I DOING?) #id:STORY_07_44
+protagonist: (...) #id:STORY_07_45
+protagonist: (Hhh...) #id:STORY_07_46
+protagonist: (Did she notice?) #id:STORY_07_47
+protagonist: (She didn't say anything...) #id:STORY_07_48
+
+[end_timeline]

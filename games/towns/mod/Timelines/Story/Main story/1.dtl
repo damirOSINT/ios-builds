@@ -1,0 +1,214 @@
+[wait time="1.0"]
+do Bus.emit_play_music("in_scenes")
+
+protagonist: (...) #id:STORY_01_01
+protagonist: (This place looks so boring.) #id:STORY_01_02
+[wait time="1.0"]
+
+set {background_fade} = false
+set {background} = "2"
+
+protagonist: (What am I even doing here?) #id:STORY_01_03
+protagonist: (Why do I have to waste time studying when I could be working and making money?) #id:STORY_01_04
+protagonist: (...) #id:STORY_01_05
+protagonist: (Nothing about this place looks interesting.) #id:STORY_01_06
+protagonist: (At least I don't have to hear my dad's annoying voice for a while.) #id:STORY_01_07
+if {relationship} == "aunt":
+	protagonist: (I guess staying with my aunt won't be too bad…) #id:STORY_01_07A_01
+	protagonist: (I barely know her... It's gonna be awkward.) #id:STORY_01_07A_02
+elif {relationship} == "mom":
+	protagonist: (Теперь жить с мамой, которую я почти не помню… Вот это поворот.)
+	protagonist: (После развода я её толком и не видел. Будет неловко.)
+elif {relationship}  ==  "stepaunt":
+	protagonist: (So now I have to live with my step-aunt? Great…) #id:STORY_01_07B_01
+	protagonist: (It's not like I have a choice anyway) #id:STORY_01_07B_02
+else:
+	protagonist: (So now I have to live in a new place with people I don't even know?) #id:STORY_01_07C_01
+	protagonist: (...) #id:STORY_01_07C_02
+	protagonist: (It's not like I have a choice anyway) #id:STORY_01_07C_03
+
+
+set {background_fade} = false
+set {background} = "3"
+
+[wait time="1.0"]
+protagonist: (I just need to get used to this place and the people. That should make things easier… I hope.) #id:STORY_01_08
+protagonist: (First things first… meeting Claire.) #id:STORY_01_09
+
+set {background_fade} = false
+set {background} = "4"
+
+if {relationship} == "aunt":
+	protagonist: (Aunt) #id:STORY_01_09A_01
+	protagonist: (Hmm...) #id:STORY_01_09A_02
+elif {relationship} == "mom":
+	protagonist: (Мама...)
+	protagonist: (Хм...)
+else:
+	protagonist: (Claire...) #id:STORY_01_09B_01
+	protagonist: (Hmm...) #id:STORY_01_09B_02
+
+set {background_fade} = false
+set {background} = "5"
+
+protagonist: (I don't even remember her that much anyway.) #id:STORY_01_10
+protagonist: (Not even her face.) #id:STORY_01_11
+
+set {hold_black} = 1.0
+set {background} = "6"
+[wait time=2.0]
+set {background} = "7"
+
+Claire: (...) #id:STORY_01_12
+Claire: (I have been waiting for thirty minutes already.) #id:STORY_01_13
+
+set {background} = "8"
+
+Claire: (What if I don't even recognize him.) #id:STORY_01_14
+Claire: (Maybe he's at the wrong place?.) #id:STORY_01_15
+
+set {hold_black} = 1.0
+set {background} = "9"
+
+protagonist: (Is she even here?) #id:STORY_01_16
+protagonist: (Maybe she forgot?) #id:STORY_01_17
+protagonist: (I'll just sit over here I guess…) #id:STORY_01_18
+
+set {background} = "10"
+
+[wait time="3.0"]
+
+
+Claire: Honey! I finally found you! #id:STORY_01_19
+protagonist: (...) #id:STORY_01_20
+protagonist: (She smells so good…) #id:STORY_01_21
+protagonist: (And feels even better…) #id:STORY_01_22
+Claire: Honey! I missed you so much! #id:STORY_01_23
+Claire: You've changed so much! #id:STORY_01_24
+Claire: I almost didn't recognize you! #id:STORY_01_25
+
+set {background} = "11"
+
+join Claire (introduction_smile) center
+protagonist: Wait, are you Claire? #id:STORY_01_26
+update Claire (introduction_laugh)
+Claire: Of course, honey. Did you forget me that easily? #id:STORY_01_27
+update Claire (introduction_smile)
+protagonist: Haha, it's not like we really knew each other that well, right? #id:STORY_01_28
+protagonist: And my memory is not that good either. #id:STORY_01_29
+update Claire (introduction_smile_open)
+Claire: It's okay honey. Don't worry about it. #id:STORY_01_30
+update Claire (introduction_smile)
+Claire: Are you okay? Are you tired? How was the trip? #id:STORY_01_31
+if {relationship} == "stepaunt":
+	protagonist: (Wow, she's so kind… Doesn't even seem like her sister's family) #id:STORY_01_31A_01
+elif {relationship} == "aunt":
+	protagonist: (Wow, she's so kind… Doesn't even seem like she's Mom's sister) #id:STORY_01_31B_01
+elif {relationship} == "mom":
+	protagonist: (Ого, она такая добрая… Совсем не такая, какой её описывал отец)
+else:
+	protagonist: (Wow, she's so kind… I wasn't expecting that) #id:STORY_01_31C_01
+protagonist: Nah, I am fine. Now that I've met you, I feel way better… #id:STORY_01_32
+update Claire (introduction_smile_open)
+Claire: Well, let's go then… #id:STORY_01_33
+protagonist: Are we walking to your house? #id:STORY_01_34
+update Claire (introduction_smile)
+Claire: Yeah, it's not that far. #id:STORY_01_35
+leave Claire
+
+set {background} = "12"
+
+join Claire (introduction_smile) center
+Claire: How's your life been, honey? Are you nervous? #id:STORY_01_36
+protagonist: Just a little. #id:STORY_01_37
+Claire: That's normal, sweetie. #id:STORY_01_38
+Claire: New house, new city... #id:STORY_01_39
+Claire: But don't worry. #id:STORY_01_40
+update Claire (introduction_smile_open)
+Claire: I'll do everything I can to make sure you have a great time here. #id:STORY_01_41
+
+set {background_fade} = false
+set {background} = "13"
+
+protagonist: Everything? #id:STORY_01_42
+set {background_fade} = false
+set {background} = "14"
+
+Claire: Yes, honey, everything. #id:STORY_01_43
+protagonist: You promise? #id:STORY_01_44
+update Claire (introduction_laugh)
+Claire: I promise. #id:STORY_01_45
+protagonist: Okay… #id:STORY_01_46
+
+set {background_fade} = false
+set {background} = "15"
+
+update Claire (introduction_smile)
+Claire: And you're stuck with us now, so you better have a good time. #id:STORY_01_47
+protagonist: Sure I will… #id:STORY_01_48
+
+set {background_fade} = false
+set {background} = "16"
+
+protagonist: Wait, us? #id:STORY_01_49
+update Claire (introduction_laugh)
+Claire: Yes, honey, don't you remember? #id:STORY_01_50
+protagonist: (Oh yeah, she had kids too.) #id:STORY_01_51
+protagonist: (I remember playing with them a long time ago when I was a kid too.) #id:STORY_01_52
+protagonist: (But I don't even remember their faces for some reason.) #id:STORY_01_53
+protagonist: Not at all, I was just not thinking about it. #id:STORY_01_54
+
+set {background_fade} = false
+set {background} = "17"
+
+update Claire (introduction_smile)
+Claire: Don't worry about them, honey. They're not home right now anyway. #id:STORY_01_55
+protagonist: I wasn't worried about that… #id:STORY_01_56
+update Claire (introduction_smile_open)
+Claire: Sure, your face is telling me something different. #id:STORY_01_57
+leave Claire
+protagonist: (Am I that easy to read?) #id:STORY_01_58
+protagonist: (I hope they are just as kind as their mother…) #id:STORY_01_59
+
+set {background} = "18"
+[wait time="2.0"]
+
+join Claire (introduction_smile) center
+Claire: We are finally here, honey. #id:STORY_01_60
+leave Claire
+
+set {background} = "19"
+[wait time="2.0"]
+
+Claire: See? It wasn't that far. #id:STORY_01_61
+protagonist: Yeah, walking is fine too... #id:STORY_01_62
+
+set {background} = "20"
+[wait time="2.0"]
+
+protagonist: (...) #id:STORY_01_63
+Claire: What are you waiting for? #id:STORY_01_64
+Claire: Come in! #id:STORY_01_65
+protagonist: Uhh, sure yeah. #id:STORY_01_66
+
+set {background_fade} = true
+set {background} = "21"
+[wait time="1.0"]
+
+... #id:STORY_01_67
+join Claire (introduction_smile) center
+Claire: Honey, this is your room. #id:STORY_01_68
+update Claire (introduction_default)
+Claire: It's a little empty right now but… #id:STORY_01_69
+protagonist: Yeah, that's fine. #id:STORY_01_70
+update Claire (introduction_smile_open)
+Claire: Thank you, honey. I didn't have much time to really clean up, but I did what I could. #id:STORY_01_71
+protagonist: Yeah, don't  worry about it. #id:STORY_01_72
+update Claire (introduction_smile)
+Claire: I will go and prepare dinner okay? Get comfortable. #id:STORY_01_73
+protagonist: Sure. #id:STORY_01_74
+leave Claire
+
+do GameController.enable_skip(false)
+do Bus.emit_play_music("morning1")
+[end_timeline]

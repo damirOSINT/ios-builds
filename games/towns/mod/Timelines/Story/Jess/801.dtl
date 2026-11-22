@@ -1,0 +1,519 @@
+do Bus.emit_play_music("in_scenes")
+[wait time="1.0"]
+
+set {background} = "1"
+
+join claire_remake (smile2_hand_on_waist) center
+... #id:STORY_801_01
+claire_remake: We only need a couple of things. #id:STORY_801_02
+protagonist: ... #id:STORY_801_03
+update claire_remake (default)
+claire_remake: Mhm! #id:STORY_801_04
+update claire_remake (curiosity_hand_on_waist)
+claire_remake: Butter, sugar... #id:STORY_801_05
+claire_remake: Oh! I think we need eggs too. #id:STORY_801_06
+protagonist: Hmm? #id:STORY_801_07
+protagonist: Did you make a list? #id:STORY_801_08
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: Huh? A list? #id:STORY_801_09
+claire_remake: Oh... #id:STORY_801_10
+claire_remake: I was supposed to... #id:STORY_801_11
+protagonist: ... #id:STORY_801_12
+update claire_remake (smile_hands_on_waist)
+claire_remake: It'll be fine, honey. #id:STORY_801_13
+update claire_remake (laugh_hands_on_waist)
+claire_remake: I'll remember everything. #id:STORY_801_14
+protagonist: Sure... #id:STORY_801_15
+update claire_remake (curiosity_hand_on_waist)
+claire_remake: Just remind me if I forget something, okay? #id:STORY_801_16
+protagonist: I'll try... #id:STORY_801_17
+protagonist: But I don't even know what we're buying. #id:STORY_801_18
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: ... #id:STORY_801_19
+claire_remake: Oh, right. #id:STORY_801_20
+claire_remake: ... #id:STORY_801_21
+update claire_remake (smile_hand_on_waist)
+claire_remake: We'll figure it out when we get there. #id:STORY_801_22
+protagonist: Okay. #id:STORY_801_23
+leave claire_remake
+
+set {hold_black} = 1.0
+[wait time="1.0"]
+
+set {background} = "2.B"
+[wait time="2.0"]
+
+join claire_remake (smile_hand_on_waist) center
+claire_remake: This store is nice. #id:STORY_801_24
+update claire_remake (default)
+claire_remake: It's small, but they have everything I need. #id:STORY_801_25
+protagonist: You come here often? #id:STORY_801_26
+update claire_remake (smile_hand_on_waist)
+claire_remake: Mhm. #id:STORY_801_27
+claire_remake: Probably once a week... Maybe twice. #id:STORY_801_28
+protagonist: I see. #id:STORY_801_29
+update claire_remake (default)
+claire_remake: Let's get a basket. #id:STORY_801_30
+protagonist: Got it. #id:STORY_801_31
+[wait time="1.0"]
+leave claire_remake
+
+
+set {hold_black} = 1.0
+[wait time="1.0"]
+set {background} = "2.A"
+[wait time="2.0"]
+
+join claire_remake (default_hands_on_waist)
+claire_remake: Okay! #id:STORY_801_32
+claire_remake: Let's see... #id:STORY_801_33
+update claire_remake (curiosity_hand_on_waist) center
+claire_remake: Butter... #id:STORY_801_34
+claire_remake: Sugar... #id:STORY_801_35
+claire_remake: Eggs... #id:STORY_801_36
+protagonist: ... #id:STORY_801_37
+update claire_remake (open_smile_hands_on_waist)
+claire_remake: See? #id:STORY_801_38
+update claire_remake (smile2_hand_on_waist)
+claire_remake: I told you I'd remember. #id:STORY_801_39
+protagonist: Let's not celebrate yet #id:STORY_801_40
+update claire_remake (default)
+claire_remake: Oh! #id:STORY_801_41
+claire_remake: We also need milk. #id:STORY_801_42
+leave claire_remake
+
+[wait time="1.0"]
+set {hold_black} = 1.0
+set {background} = "2.C"
+[wait time="2.0"]
+
+join claire_remake (default) center
+claire_remake: We are almost done, honey. #id:STORY_801_43
+protagonist: Nice! #id:STORY_801_44
+update claire_remake (smile_hands_on_waist)
+claire_remake: Oh! #id:STORY_801_45
+claire_remake: We still need cereal. #id:STORY_801_46
+protagonist: Right. #id:STORY_801_47
+update claire_remake (default)
+claire_remake: ... #id:STORY_801_48
+update claire_remake (curiosity_hands_on_waist)
+claire_remake: Ah! #id:STORY_801_49
+claire_remake: Right! #id:STORY_801_50
+protagonist: ... #id:STORY_801_51
+update claire_remake (laugh_hand_on_waist)
+claire_remake: Laundry detergent! #id:STORY_801_52
+claire_remake: I knew I'd remember. #id:STORY_801_53
+protagonist: ... #id:STORY_801_54
+update claire_remake (default)
+claire_remake: Hmm... #id:STORY_801_55
+claire_remake: Honey... #id:STORY_801_56
+claire_remake: I'll go get the laundry detergent. #id:STORY_801_57
+update claire_remake (smile_hand_on_waist)
+claire_remake: Could you grab the cereal? #id:STORY_801_58
+update claire_remake (default_hand_on_waist)
+claire_remake: It should be around here somewhere. #id:STORY_801_59
+protagonist: Sure. #id:STORY_801_60
+update claire_remake (smile_hands_on_waist)
+claire_remake: Thank you, honey. #id:STORY_801_61
+claire_remake: Meet me at the checkout when you're done. #id:STORY_801_62
+protagonist: Got it. #id:STORY_801_63
+update claire_remake (smile_hand_on_waist)
+claire_remake: Don't wander off. #id:STORY_801_64
+protagonist: What if I get lost? #id:STORY_801_65
+update claire_remake (laugh_hands_on_waist)
+claire_remake: Then I'll come find you, he-he. ♥ #id:STORY_801_66
+[wait time="1.0"]
+leave claire_remake
+
+[wait time="1.0"]
+set {hold_black} = 1.0
+set {background} = "2.B"
+[wait time="2.0"]
+
+protagonist: ... #id:STORY_801_67
+protagonist: Cereal... #id:STORY_801_68
+protagonist: Hmm... #id:STORY_801_69
+protagonist: (She said it was around here somewhere.) #id:STORY_801_70
+[wait time="2.0"]
+protagonist: There it is. #id:STORY_801_71
+protagonist: (So many options...) #id:STORY_801_72
+protagonist: ... #id:STORY_801_73
+[wait time="1.0"]
+protagonist: (I should've asked which one she wanted.) #id:STORY_801_74
+... #id:STORY_801_75
+protagonist: (I'd better hurry before she forgets what she went to grab.) #id:STORY_801_76
+
+[sound path="res://assets/Audio/SFX/various/falling_object(geenburg).wav" volume="0.0"]
+... #id:STORY_801_77
+
+protagonist: Huh? #id:STORY_801_78
+protagonist: Did something fall? #id:STORY_801_79
+protagonist: Oh. #id:STORY_801_80
+
+(kneels down) #id:STORY_801_81
+[wait time="1.0"]
+protagonist: Uhh... #id:STORY_801_82
+protagonist: Excuse me... #id:STORY_801_83
+protagonist: I think you dropped— #id:STORY_801_84
+
+do Bus.emit_play_music("tension")
+set {hold_black} = 2.0
+set {background} = "3"
+[wait time="2.0"]
+
+... #id:STORY_801_85
+protagonist: ... #id:STORY_801_86
+protagonist: Uhh. #id:STORY_801_87
+protagonist: ... #id:STORY_801_88
+protagonist: Sorry... #id:STORY_801_89
+
+set {hold_black} = 1.0
+set {background} = "4"
+[wait time="2.0"]
+
+Lady: Hmm? #id:STORY_801_90
+... #id:STORY_801_91
+Lady: Oh! #id:STORY_801_92
+Lady: Hi there! #id:STORY_801_93
+Lady: Is everything okay? #id:STORY_801_94
+
+set {hold_black} = 2.0
+set {background} = "5.0"
+[wait time="2.0"]
+
+protagonist: ... #id:STORY_801_95
+Lady: Huh? #id:STORY_801_96
+Lady: Are you okay? #id:STORY_801_97
+protagonist: Oh! #id:STORY_801_98
+protagonist: S-Sorry... #id:STORY_801_99
+protagonist: I think... #id:STORY_801_100
+protagonist: You dropped something... #id:STORY_801_101
+Lady: Huh? #id:STORY_801_102
+Lady: Oh! #id:STORY_801_103
+Lady: You're right! #id:STORY_801_104
+Lady: I didn't even notice! #id:STORY_801_105
+Lady: He-he. #id:STORY_801_106
+
+protagonist: Y-yeah... #id:STORY_801_107
+... #id:STORY_801_108
+
+set {background} = "5.1"
+
+Lady: Hmmm? #id:STORY_801_109
+... #id:STORY_801_110
+Lady: Mmm... #id:STORY_801_111
+Lady: I think you're still holding it, darling. #id:STORY_801_112
+
+protagonist: Oh, right! #id:STORY_801_113
+
+do Bus.emit_play_music("in_scenes")
+set {hold_black} = 1.0
+set {background} = "2.A"
+[wait time="1.0"]
+
+join jess (default) center
+protagonist: S-Sorry. #id:STORY_801_114
+protagonist: I was... #id:STORY_801_115
+protagonist: I got distracted... #id:STORY_801_116
+protagonist: Here. #id:STORY_801_117
+
+update jess (smile_hand_on_waist)
+Lady: Thanks! #id:STORY_801_118
+update jess (embarassed_hands_on_waist)
+Lady: I'd probably have walked all the way home without it. #id:STORY_801_119
+protagonist: ... #id:STORY_801_120
+protagonist: Sorry about that. #id:STORY_801_121
+update jess (default_hand_on_waist)
+Lady: Huh? For what? #id:STORY_801_122
+protagonist: Uhh... #id:STORY_801_123
+protagonist: Nothing, haha... #id:STORY_801_124
+update jess (laugh_hand_on_waist)
+Lady: He-he. #id:STORY_801_125
+Lady: You're kind of funny. #id:STORY_801_126
+protagonist: ... #id:STORY_801_127
+update jess (smile)
+Lady: I'm Jess, by the way. #id:STORY_801_128
+
+update jess (default)
+protagonist: Oh. #id:STORY_801_129
+protagonist: I'm {player_name}. #id:STORY_801_130
+update jess (laugh_hand_on_waist)
+jess: Nice to meet you, {player_name}. ♥ #id:STORY_801_131
+protagonist: Nice to meet you too. #id:STORY_801_132
+update jess (default)
+jess: Are you from around here? #id:STORY_801_133
+protagonist: I moved here recently. #id:STORY_801_134
+update jess (curiosity_hand_on_waist)
+jess: Oh! #id:STORY_801_135
+update jess (laugh_hands_on_waist)
+jess: I actually just moved back. #id:STORY_801_136
+jess: I grew up here. #id:STORY_801_137
+protagonist: Really? #id:STORY_801_138
+update jess (default)
+jess: Mhm. #id:STORY_801_139
+jess: It's been a while, though. #id:STORY_801_140
+protagonist: Welcome back! #id:STORY_801_141
+update jess (smile)
+jess: Thank you. ♥ #id:STORY_801_142
+update jess (default_hand_on_waist)
+jess: So... #id:STORY_801_143
+jess: Shopping by yourself? #id:STORY_801_144
+protagonist: Actually... #id:STORY_801_145
+if {relationship} == "mom":
+	protagonist: Я здесь с мамой.
+else:
+	protagonist: I'm here with my {relationship}. #id:STORY_801_146
+update jess (curiosity_hand_on_waist)
+jess: I see. #id:STORY_801_147
+
+update jess left
+join claire_remake (curiosity_hands_on_waist) right
+claire_remake: Honey? #id:STORY_801_148
+update jess (curiosity_hand_on_waist)
+jess: Oh? #id:STORY_801_149
+protagonist: Hm? #id:STORY_801_150
+update claire_remake (embarassed)
+claire_remake: There you are! #id:STORY_801_151
+update claire_remake (smile_hands_on_waist)
+claire_remake: I was wondering what was taking you so long. #id:STORY_801_152
+protagonist: Sorry, I was— #id:STORY_801_153
+jess: Wait... #id:STORY_801_154
+jess: Claire? #id:STORY_801_155
+update claire_remake (default)
+claire_remake: Hmm? #id:STORY_801_156
+update claire_remake (curiosity_hands_on_waist)
+claire_remake: Oh! #id:STORY_801_157
+claire_remake: Jess!? #id:STORY_801_158
+update jess (laugh_hands_on_waist)
+jess: He-he! #id:STORY_801_159
+jess: It's been so long! #id:STORY_801_160
+update claire_remake (laugh_hand_on_waist)
+claire_remake: I know! #id:STORY_801_161
+claire_remake: What are you doing here? #id:STORY_801_162
+claire_remake: I thought you were living somewhere else. #id:STORY_801_163
+update jess (default)
+jess: I moved back a few weeks ago. #id:STORY_801_164
+update claire_remake (embarassed_hands_on_waist)
+claire_remake: Really? #id:STORY_801_165
+claire_remake: That's great! #id:STORY_801_166
+update jess (laugh_hand_on_waist)
+jess: He-he. #id:STORY_801_167
+update claire_remake (default)
+claire_remake: So... #id:STORY_801_168
+claire_remake: What brings you back? #id:STORY_801_169
+update jess (default)
+jess: Well... #id:STORY_801_170
+update claire_remake (smile2_hand_on_waist)
+claire_remake: Oh! #id:STORY_801_171
+claire_remake: Did your husband move back with you too? #id:STORY_801_172
+update jess (embarassed_hand_on_waist)
+jess: About that... #id:STORY_801_173
+
+leave claire_remake
+leave jess
+
+
+[wait time="1.0"]
+set {hold_black} = 2.0
+set {background} = "6.0"
+[wait time="2.0"]
+
+protagonist: (...) #id:STORY_801_174
+
+(distant chatter) #id:STORY_801_175
+
+protagonist: (Hhhh, she's cute...) #id:STORY_801_176
+
+claire_remake: So where are you staying now? #id:STORY_801_177
+jess: Just a few blocks from here. #id:STORY_801_178
+claire_remake: Really? #id:STORY_801_179
+jess: Mhm. #id:STORY_801_180
+
+set {background} = "6.1"
+
+protagonist: (...) #id:STORY_801_181
+protagonist: (I wonder how old she is.) #id:STORY_801_182
+
+jess: We're taking some time apart... #id:STORY_801_183
+jess: Things have been a little complicated lately... #id:STORY_801_184
+claire_remake: Oh... #id:STORY_801_185
+
+protagonist: (...) #id:STORY_801_186
+
+set {background} = "6.0"
+
+jess: He's been working all the time lately... #id:STORY_801_187
+claire_remake: Right, right. #id:STORY_801_188
+
+set {background} = "6.1"
+
+protagonist: (I should probably stop staring...) #id:STORY_801_189
+protagonist: (...) #id:STORY_801_190
+protagonist: (Nah...) #id:STORY_801_191
+[wait time="1.0"]
+
+set {background_fade} = false
+set {background} = "6.0"
+
+join claire_remake (embarassed_hands_on_waist) left
+join jess (default) right
+claire_remake: Oh! #id:STORY_801_192
+claire_remake: Honey! #id:STORY_801_193
+
+protagonist: Hm? #id:STORY_801_194
+
+update claire_remake (smile_hand_on_waist)
+claire_remake: I completely forgot you were here! #id:STORY_801_195
+
+set {hold_black} = 1.0
+set {background} = "2.A"
+[wait time="1.0"]
+
+jess: He-he. #id:STORY_801_196
+claire_remake: Honey, this is Jess. #id:STORY_801_197
+
+update jess (laugh_hands_on_waist)
+jess: Nice to meet you properly. #id:STORY_801_198
+protagonist: Likewise. #id:STORY_801_199
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: Wait... #id:STORY_801_200
+claire_remake: So this is why finding the cereal took you so long? #id:STORY_801_201
+update jess (embarassed)
+jess: It was my fault. #id:STORY_801_202
+jess: He was trying to help me. #id:STORY_801_203
+update claire_remake (smile_hands_on_waist)
+claire_remake: Aww. #id:STORY_801_204
+protagonist: ... #id:STORY_801_205
+update claire_remake (default_hand_on_waist)
+claire_remake: See? #id:STORY_801_206
+claire_remake: I told you not to wander off. #id:STORY_801_207
+update jess (laugh_hands_on_waist)
+jess: He-he. ♥ #id:STORY_801_208
+protagonist: ... #id:STORY_801_209
+update claire_remake (curiosity_hands_on_waist)
+claire_remake: Oh! #id:STORY_801_210
+jess: ? #id:STORY_801_211
+protagonist: ? #id:STORY_801_212
+update claire_remake (smile2_hands_on_waist)
+claire_remake: Jess! #id:STORY_801_213
+claire_remake: Since you're back... #id:STORY_801_214
+claire_remake: You should come over one day. #id:STORY_801_215
+update jess (curiosity_hand_on_waist)
+jess: Really? #id:STORY_801_216
+update claire_remake (smile_hand_on_waist)
+claire_remake: Of course! #id:STORY_801_217
+update jess (laugh_hands_on_waist)
+jess: I'd like that. #id:STORY_801_218
+update claire_remake (laugh_hands_on_waist)
+claire_remake: Great! #id:STORY_801_219
+protagonist: Great! #id:STORY_801_220
+update claire_remake (curiosity_hand_on_waist)
+update jess (default)
+claire_remake: Huh? #id:STORY_801_221
+update jess (laugh_hands_on_waist)
+jess: ♥ #id:STORY_801_222
+... #id:STORY_801_223
+update claire_remake (laugh_hands_on_waist)
+claire_remake: Then it's settled! #id:STORY_801_224
+jess: He-he. #id:STORY_801_225
+[wait time="2.0"]
+update jess (default_hand_on_waist)
+jess: Well... #id:STORY_801_226
+jess: I'd better finish shopping now, then. #id:STORY_801_227
+update claire_remake (default)
+claire_remake: Right! #id:STORY_801_228
+claire_remake: It was really nice seeing you again. #id:STORY_801_229
+update jess (laugh_hands_on_waist)
+jess: You too. #id:STORY_801_230
+jess: Bye, {player_name}. #id:STORY_801_231
+protagonist: Bye... #id:STORY_801_232
+
+leave jess
+leave claire_remake
+[wait time="1.0"]
+
+set {hold_black} = 2.0
+set {background} = "7"
+[wait time="2.0"]
+[wait_input]
+... #id:STORY_801_233
+set {background} = "7.1"
+... #id:STORY_801_234
+claire_remake: Honey? #id:STORY_801_235
+[wait time="1.0"]
+join claire_remake (curiosity_hand_on_waist) rightmost
+claire_remake: HONEY! #id:STORY_801_236
+protagonist: Uhh... #id:STORY_801_237
+leave claire_remake
+[wait time="2.0"]
+
+join claire_remake (serious_hands_on_waist) center
+protagonist: (...) #id:STORY_801_238
+claire_remake: The cereal? #id:STORY_801_239
+protagonist: ... #id:STORY_801_240
+protagonist: Oh! Right. #id:STORY_801_241
+protagonist: My bad. #id:STORY_801_242
+update claire_remake (concern_hand_on_waist)
+claire_remake: Hhh! #id:STORY_801_243
+claire_remake: Honestly, honey... #id:STORY_801_244
+claire_remake: You're so... #id:STORY_801_245
+protagonist: What? #id:STORY_801_246
+claire_remake: ... #id:STORY_801_247
+update claire_remake (embarassed_hands_on_waist)
+claire_remake: Hhh... #id:STORY_801_248
+claire_remake: Forget about it. #id:STORY_801_249
+claire_remake: Let's go. #id:STORY_801_250
+[wait time="1.0"]
+leave claire_remake
+
+[wait time="2.0"]
+set {hold_black} = 2.0
+set {background} = "100"
+[wait time="2.0"]
+
+join claire_remake (smile2_hands_on_waist) center
+... #id:STORY_801_251
+claire_remake: He-he. #id:STORY_801_252
+protagonist: Hmm? #id:STORY_801_253
+claire_remake: I'm really happy we ran into Jess. #id:STORY_801_254
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: I haven't seen her in ages. #id:STORY_801_255
+protagonist: Were you two pretty close? #id:STORY_801_256
+update claire_remake (default_hands_on_waist)
+claire_remake: Mhm. #id:STORY_801_257
+update claire_remake (laugh_hand_on_waist)
+claire_remake: We used to spend a lot of time together. #id:STORY_801_258
+update claire_remake (smile2_hand_on_waist)
+claire_remake: She's always been really sweet. #id:STORY_801_259
+protagonist: Why did she move away? #id:STORY_801_260
+update claire_remake (smile_hand_on_waist)
+claire_remake: Well... #id:STORY_801_261
+claire_remake: She met someone. #id:STORY_801_262
+update claire_remake (default)
+claire_remake: So she moved away with him. #id:STORY_801_263
+update claire_remake (laugh_hands_on_waist)
+claire_remake: I didn't know she was back already. #id:STORY_801_264
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: I hope she's doing okay... #id:STORY_801_265
+protagonist: Yeah... #id:STORY_801_266
+update claire_remake (smile_hand_on_waist)
+claire_remake: You seemed to get along with her. #id:STORY_801_267
+protagonist: We only talked for a minute. #id:STORY_801_268
+update claire_remake (laugh_hands_on_waist)
+claire_remake: He-he. #id:STORY_801_269
+update claire_remake (embarassed_hand_on_waist)
+claire_remake: You looked like you were having fun. #id:STORY_801_270
+protagonist: ... #id:STORY_801_271
+protagonist: Yeah... #id:STORY_801_272
+protagonist: She seemed... [n+]Uhh... #id:STORY_801_273
+update claire_remake (default)
+protagonist: Nice... #id:STORY_801_274
+update claire_remake (laugh_hands_on_waist)
+claire_remake: Mhm. #id:STORY_801_275
+claire_remake: I think you'll like her. #id:STORY_801_276
+... #id:STORY_801_277
+protagonist: Yeah... [n+]I think I do. #id:STORY_801_278
+... #id:STORY_801_279
+leave claire_remake
+
+[end_timeline]

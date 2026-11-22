@@ -1,0 +1,285 @@
+name: godot-games
+
+# Builds A Mom's Life 1 and 2 (cherry-cream-games, itch.io, free) as unsigned
+# iOS apps. Both are made on stock Godot (GL Compatibility, WebP textures),
+# so the Windows build's pack runs as it is: Godot's iOS exporter writes the
+# Xcode project for a shell project on the same Godot version, its pack is
+# replaced with the game's, and it's built without signing.
+#
+# Town's Charm (jwaff) comes as a .rar; its dialogue (Dialogic timelines)
+# is kept as an artifact for translating.
+#
+# The mod (games/<id>/mod plus games/godot-shell/mod_gallery.gd) adds a
+# Gallery button to the main menu with every scene artwork unlocked. AML 2's
+# scripts are compiled, so its changed scripts are compiled to its bytecode.
+# Nothing of the games is stored in this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Games to build, comma-separated ids, or all"
+        default: "all"
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        env:
+          GAMES: ${{ inputs.games }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          # pck: the pack's file name in the download, or empty to find it
+          # (or take the one embedded in the Windows executable).
+          games = [
+            {"id": "towns", "name": "Town's Charm", "godot": "4.6.2", "page": "https://jwaff.itch.io/towns-charm",
+             "upload": "18859516", "pck": "", "version": "0.9.1", "bytecode": "4.6.2", "videos": True},
+          ]
+          want = os.environ.get("GAMES") or "all"
+          if want != "all":
+            ids = {w.strip() for w in want.split(",")}
+            games = [g for g in games if g["id"] in ids]
+          print("matrix=" + json.dumps({"include": games}))
+          PY
+
+  build:
+    needs: pick
+    runs-on: macos-26
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot and its iOS template
+        env:
+          V: ${{ matrix.godot }}
+        run: |
+          set -euo pipefail
+          mkdir -p tools && cd tools
+          base="https://github.com/godotengine/godot-builds/releases/download/${V}-stable"
+          curl -sSfL -o godot.zip "$base/Godot_v${V}-stable_macos.universal.zip"
+          unzip -q godot.zip && rm godot.zip
+          curl -sSfL -o templates.tpz "$base/Godot_v${V}-stable_export_templates.tpz"
+          dest="$HOME/Library/Application Support/Godot/export_templates/${V}.stable"
+          mkdir -p "$dest"
+          unzip -q -j templates.tpz "templates/ios.zip" "templates/version.txt" -d "$dest"
+          rm templates.tpz
+          echo "GODOT=$PWD/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+
+      - name: Download GDRE Tools
+        run: |
+          set -euo pipefail
+          mkdir -p tools/gdre && cd tools/gdre
+          curl -sSfL -o gdre.zip "https://github.com/GDRETools/gdsdecomp/releases/download/v2.7.4/GDRE_tools-v2.7.4-macos.zip"
+          unzip -q gdre.zip && rm gdre.zip
+          exe="$(find . -path '*.app/Contents/MacOS/*' -type f -perm -u+x | head -1)"
+          echo "GDRE=$PWD/${exe#./}" >> "$GITHUB_ENV"
+
+      - name: Download the game from itch.io
+        env:
+          PAGE: ${{ matrix.page }}
+          UPLOAD: ${{ matrix.upload }}
+        run: |
+          set -euo pipefail
+          mkdir -p game && cd game
+          ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          # itch.io answers the first request from a new address with 429.
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -c cj -b cj -A "$ua" -o page.html -w "%{http_code}" "$PAGE")
+            [ "$code" = 200 ] && break
+            sleep 5
+          done
+          csrf=$(grep -o 'name="csrf_token" value="[^"]*"' page.html | head -1 | sed 's/.*value="//;s/"$//')
+          for i in 1 2 3 4 5 6; do
+            reply=$(curl -s -c cj -b cj -A "$ua" -e "$PAGE" -X POST --data-urlencode "csrf_token=$csrf" \
+              "$PAGE/file/$UPLOAD?source=view_game&as_props=1&after_download_lightbox=true")
+            echo "$reply" | grep -q '"url"' && break
+            sleep 5
+          done
+          url=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['url'])")
+          curl -sSL -A "$ua" -o game.pkg "$url"
+          if unzip -tq game.pkg >/dev/null 2>&1; then unzip -q game.pkg; else
+            # Homebrew's 7-Zip is built without RAR; The Unarchiver reads it.
+            command -v unar >/dev/null || brew install -q unar
+            unar -q -o . game.pkg
+          fi
+          rm game.pkg
+          ls -laR | head -30
+
+      - name: Find the game's pack
+        env:
+          PCK: ${{ matrix.pck }}
+        run: |
+          set -euo pipefail
+          cd game
+          if [ -z "$PCK" ]; then
+            found="$(find . -name '*.pck' | head -1)"
+            if [ -n "$found" ]; then
+              mv "$found" game.pck
+            else
+              # Exported with the pack embedded in the executable: its last
+              # 12 bytes are the pack's size and the "GDPC" magic.
+              exe="$(find . -iname '*.exe' ! -iname '*console*' | head -1)"
+              python3 - "$exe" game.pck <<'PY'
+          import struct, sys
+          data = open(sys.argv[1], "rb").read()
+          assert data[-4:] == b"GDPC", "no embedded pack"
+          size = struct.unpack("<q", data[-12:-4])[0]
+          open(sys.argv[2], "wb").write(data[-12 - size:-12])
+          print("embedded pack:", size)
+          PY
+            fi
+            echo "PCK=game.pck" >> "$GITHUB_ENV"
+          else
+            echo "PCK=$PCK" >> "$GITHUB_ENV"
+          fi
+          ls -la
+
+      - name: Re-encode the videos as Ogg Theora
+        if: matrix.videos
+        run: |
+          set -euo pipefail
+          # The game plays its .mp4 files through GDE GoZen, which has no iOS
+          # library; games/<id>/mod has a VideoPlayback on Godot's own
+          # VideoStreamPlayer, which reads Theora by content, so each video
+          # is re-encoded under its own name.
+          command -v ffmpeg >/dev/null || brew install -q ffmpeg
+          ffmpeg -hide_banner -encoders | grep -q libtheora
+          mkdir -p videos patch
+          python3 -c "import sys; sys.path.insert(0, 'tools'); import pck; print(pck.extract(sys.argv[1], 'videos', lambda p: p.endswith('.mp4')))" "game/$PCK"
+          (cd videos && find . -name '*.mp4' | sed 's|^\./||') > videos.txt
+          wc -l videos.txt
+          conv() { mkdir -p "patch/$(dirname "$1")"; ffmpeg -nostdin -loglevel error -i "videos/$1" -c:v libtheora -q:v 7 -c:a libvorbis -q:a 4 -f ogg "patch/$1"; }
+          export -f conv
+          xargs -P 4 -I{} bash -c 'conv "$1"' _ {} < videos.txt
+          find patch -name '*.mp4' | wc -l
+          du -sh videos patch
+          rm -rf videos
+
+      - name: Keep the game's dialogue for translation
+        if: matrix.id == 'towns'
+        run: |
+          set +e
+          "$GDRE" --headless --extract="$PWD/game/$PCK" --output="$PWD/text" > extract.log 2>&1
+          tail -3 extract.log
+          mkdir -p dialogue
+          (cd text && find . \( -name '*.dtl' -o -name '*.csv' -o -name '*.translation' -o -name '*.po' -o -name '*.dch' -o -name '*.tres' \) -print0 | cpio -0pdm ../dialogue 2>/dev/null)
+          find dialogue -type f | wc -l; du -sh dialogue
+          rm -rf text
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.id == 'towns'
+        with:
+          name: towns-dialogue
+          path: dialogue
+          retention-days: 1
+
+      - name: Patch the pack with the mod
+        if: hashFiles(format('games/{0}/mod/**', matrix.id)) != '' || matrix.videos
+        env:
+          ID: ${{ matrix.id }}
+          BYTECODE: ${{ matrix.bytecode }}
+        run: |
+          set -euo pipefail
+          mkdir -p patch
+          cp -R "games/$ID/mod/." patch/
+          cp games/godot-shell/mod_gallery.gd patch/mod_gallery.gd
+          if [ -n "$BYTECODE" ]; then
+            while IFS= read -r f; do
+              "$GDRE" --headless --compile="$PWD/patch/$f" --bytecode="$BYTECODE" --output="$PWD/patch/$(dirname "$f")" 2>&1 | grep -E "Compiled|rror" || true
+              rm "patch/$f"
+            done < <(cd patch && find . -name '*.gd' ! -name mod_gallery.gd | sed 's|^\./||')
+          fi
+          args=()
+          while IFS= read -r f; do
+            args+=("--patch-file=$PWD/patch/$f=res://$f")
+          done < <(cd patch && find . -type f | sed 's|^\./||')
+          printf '%s\n' "${args[@]}"
+          "$GDRE" --headless --pck-patch="$PWD/game/$PCK" --output="$PWD/game/patched.pck" "${args[@]}" 2>&1 | tr '\r' '\n' | grep -v '\[' | tail -5
+          mv game/patched.pck "game/$PCK"
+          ls -la game
+
+      - name: Run the game on stock Godot for script errors
+        run: |
+          set +e
+          "$GODOT" --headless --main-pack "$PWD/game/$PCK" --quit-after 600 > run.log 2>&1
+          echo "exit: $?"
+          grep -niE "extension|gdextension|gozen" run.log | head -10
+          grep -nE "SCRIPT ERROR|Parse Error|Compile Error|ERROR:" run.log | head -40
+          true
+
+      - name: Write the Xcode project
+        env:
+          ID: ${{ matrix.id }}
+          NAME: ${{ matrix.name }}
+          PAGE: ${{ matrix.page }}
+          V: ${{ matrix.godot }}
+          VERSION: ${{ matrix.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          cp -R games/godot-shell gshell
+          if [ -f "games/$ID/icon.png" ]; then cp "games/$ID/icon.png" gshell/icon.png; else
+            # The cover on the game's itch.io page, cropped square.
+            cover="$(python3 -c "import re,sys;print(re.search(r'<meta[^>]*?(?:content=\"([^\"]+)\"[^>]*property=\"og:image\"|property=\"og:image\"[^>]*content=\"([^\"]+)\")', open('game/page.html').read()).group(1) or '')")"
+            curl -sSfL -o cover.img "$cover"
+            sips -s format png cover.img --out cover.png > /dev/null
+            w=$(sips -g pixelWidth cover.png | awk '/pixelWidth/{print $2}'); h=$(sips -g pixelHeight cover.png | awk '/pixelHeight/{print $2}')
+            m=$(( w < h ? w : h ))
+            sips -c "$m" "$m" cover.png --out cover.png > /dev/null
+            sips -z 1024 1024 cover.png --out gshell/icon.png > /dev/null
+          fi
+          feature="${V%.*}"
+          sed -e "s|@NAME@|$NAME|" -e "s|@FEATURE@|$feature|" gshell/project.godot.in > gshell/project.godot
+          sed -e "s|@BUNDLE@|com.damir.$ID|" -e "s|@VERSION@|$VERSION|" gshell/export_presets.cfg.in > gshell/export_presets.cfg
+          rm gshell/*.in
+          cd gshell
+          "$GODOT" --headless --import > import.log 2>&1 || true
+          # An exporter without export_project_only goes on to sign the
+          # project and fails there; the project it wrote is all that's needed.
+          "$GODOT" --headless --export-release "iOS" ../build/game.ipa 2>&1 | tail -30 || true
+          cd ../build
+          find . -maxdepth 2 | head -40
+          ls -d *.xcodeproj
+
+      - name: Put the game into the Xcode project and build
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          set -euo pipefail
+          cd build
+          pck="$(find . -name '*.pck' -not -path './dd/*' | head -1)"
+          echo "replacing $pck"
+          cp "../game/$PCK" "$pck"
+          proj="$(find . -maxdepth 1 -name '*.xcodeproj' | head -1)"
+          scheme="$(basename "$proj" .xcodeproj)"
+          xcodebuild -project "$proj" -scheme "$scheme" -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -derivedDataPath dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            build | tail -30
+          app="$(find dd/Build/Products -name '*.app' -maxdepth 2 | head -1)"
+          mkdir -p ipa/Payload
+          cp -R "$app" ipa/Payload/
+          (cd ipa && zip -qry "../$ID.ipa" Payload)
+          ls -la "$ID.ipa"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.id }}-ipa
+          path: build/${{ matrix.id }}.ipa
+          retention-days: 1
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.id }}-logs
+          path: |
+            run.log
+            gshell/import.log
+          retention-days: 1

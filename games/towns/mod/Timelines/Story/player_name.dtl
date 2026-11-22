@@ -1,0 +1,27 @@
+... #id:PLAYER_NAME_01
+[text_input text="Type your name" var="player_name"]
+join Claire right
+What is your relationship with Claire? #id:PLAYER_NAME_02
+Clare is my... #id:PLAYER_NAME_03
+- Landlady (family friend) #id:PLAYER_NAME_04
+	set {relationship} = "landlady"
+- Step-aunt #id:PLAYER_NAME_05
+	set {relationship} = "stepaunt"
+- Aunt #id:PLAYER_NAME_06
+	set {relationship} = "aunt"
+- Мама
+	set {relationship} = "mom"
+- Custom #id:PLAYER_NAME_07
+	[text_input text="" var="relationship"]
+
+if {relationship} == "aunt":
+	Claire is {player_name}'s aunt #id:PLAYER_NAME_07A_01
+elif {relationship} == "stepaunt":
+	Claire is {player_name}'s step-aunt #id:PLAYER_NAME_07B_01
+elif {relationship} == "mom":
+	Клэр — мама {player_name}
+elif {relationship} == "landlady"
+	Claire is {player_name}'s landlady (family friend) #id:PLAYER_NAME_07C_01
+else
+	Claire is {player_name}'s {relationship} #id:PLAYER_NAME_07D_01
+	<Empty Text Event> #id:510

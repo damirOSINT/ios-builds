@@ -1,0 +1,14 @@
+[wait time="1.0"]
+if {relationship} == "aunt":
+	protagonist: (I have to stop thinking about my aunt like that or something bad might happen.) #id:STORY_05_00A_01
+	protagonist: (...) #id:STORY_05_00A_02
+elif {relationship} == "mom":
+	protagonist: (Мне нужно перестать так думать о маме, иначе может случиться что-то плохое.)
+	protagonist: (...)
+else
+	protagonist: (I should stop thinking about her like that or something bad might happen.) #id:STORY_05_00B_01
+	protagonist: (...) #id:STORY_05_00B_02
+protagonist: Alright, time to start the day. #id:STORY_05_01
+protagonist: I should check on Claire. #id:STORY_05_02
+
+[end_timeline]

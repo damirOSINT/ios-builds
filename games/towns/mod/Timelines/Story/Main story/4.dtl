@@ -1,0 +1,82 @@
+[wait time="1.0"]
+
+protagonist: (I am so tired.) #id:STORY_04_01
+protagonist: (Claire is so nice…) #id:STORY_04_02
+protagonist: (I want to stay here forever now…) #id:STORY_04_03
+if {relationship} == "aunt":
+	protagonist: (...) #id:STORY_04_03A_01
+	protagonist: (I shouldn't be thinking about my aunt like that…) #id:STORY_04_03A_02
+	protagonist: (After all, she's still my aunt) #id:STORY_04_03A_03
+	protagonist: (Even if we are not close...) #id:STORY_04_03A_04
+	protagonist: (Yet...) #id:STORY_04_03A_05
+elif {relationship} == "mom":
+	protagonist: (...)
+	protagonist: (Мне не стоит так думать о собственной маме…)
+	protagonist: (В конце концов, она моя мама)
+	protagonist: (Пусть мы и почти чужие...)
+	protagonist: (Пока что...)
+else
+	protagonist: (...) #id:STORY_04_03B_01
+	protagonist: (I shouldn't be thinking about Claire like that…) #id:STORY_04_03B_02
+protagonist: (Alright, time to sleep.) #id:STORY_04_04
+(...) #id:STORY_04_05
+
+set {background} = "100"
+
+protagonist: Huh? #id:STORY_04_06
+
+set {background} = "3"
+do Bus.emit_play_music("tension")
+[wait time="3.0"]
+
+
+Claire: Hi, honey, did you miss me? #id:STORY_04_07
+protagonist: Claire? #id:STORY_04_08
+protagonist: What are you doing? #id:STORY_04_09
+
+set {background} = "4"
+
+[wait time="3.0"]
+
+protagonist: What's happening? #id:STORY_04_10
+if {relationship} == "aunt":
+	Claire: I'm just playing with my dear nephew… #id:STORY_04_10A_01
+elif {relationship} == "mom":
+	Claire: Я просто играю со своим дорогим сыночком…
+else:
+	Claire: I'm just getting close to my new guest… #id:STORY_04_10B_01
+protagonist: But… #id:STORY_04_11
+Claire: But, what? #id:STORY_04_12
+Claire: Don't be boring, sweetie. #id:STORY_04_13
+
+set {background} = "5"
+[wait time="2.0"]
+
+Claire: You don't have to be this stiff around me, honey. #id:STORY_04_14
+if {relationship} == "aunt":
+	Claire: After all, we are family. #id:STORY_04_14A_01
+	Claire: So we should be comfortable around each other, right? #id:STORY_04_14A_02
+	Claire: So just relax… #id:STORY_04_14A_03
+	Claire: I'll take care of you. #id:STORY_04_14A_04
+elif {relationship} == "mom":
+	Claire: В конце концов, я твоя мама.
+	Claire: Так что нам стоит быть ближе друг к другу, правда?
+	Claire: Так что просто расслабься…
+	Claire: Мамочка о тебе позаботится.
+else:
+	Claire: We should get a little closer. #id:STORY_04_14B_01
+	Claire: I just want you to feel at home. #id:STORY_04_14B_02
+
+[wait_input ]
+
+set {hold_black} = 2.0
+set {background} = "6"
+
+do Bus.emit_play_music("morning1")
+protagonist: Wha–? #id:STORY_04_15
+protagonist: ... #id:STORY_04_16
+protagonist: Oh #id:STORY_04_17
+protagonist: I see.. #id:STORY_04_18
+protagonist: I was really tired. #id:STORY_04_19
+
+[end_timeline]
