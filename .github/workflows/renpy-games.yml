@@ -1,0 +1,270 @@
+name: renpy-games
+
+# Builds Ren'Py games from itch.io (free ones) as unsigned iOS apps with
+# Ren'Py's own iOS kit (renios): the game's game/ folder becomes a project,
+# the launcher's ios_create writes the Xcode project with the game in it,
+# and it's built without signing. The SDK must be the game's Ren'Py version.
+#
+# Lust in Suburbs' scenes are Live2D models. Ren'Py looks for Live2D Cubism
+# Core in the app's own executable on iOS, so the Core's static library from
+# the Cubism SDK for Native (Live2D's license, accepted by the owner of this
+# repository) is force-loaded into it. The macOS dylib goes into the Ren'Py
+# SDK for the launcher's run of the game.
+# games/<id>/mod/*.rpy, when there are any, are added to the game.
+# A game hosted in a public MEGA folder (its author's free build) is fetched
+# with tools/megafolder.py. With shrink (a WebP quality), the images archive
+# is unpacked and its pictures re-encoded as WebP, so the IPA stays under
+# litterbox's 1 GB (litterbox refuses uploads from Actions runners, so the
+# direct link for LiveContainer is made from the artifact elsewhere).
+# Each IPA is also uploaded to gofile.io, whose link is in the job summary.
+# With translate, Ren'Py writes the game's translation template for that
+# language (kept as an artifact), and games/<id>/tl/<language>, the
+# translation, goes into the game and is made its default language.
+# Nothing of the games or of the Cubism SDK is stored in this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Games to build, comma-separated ids, or all"
+        default: "all"
+
+env:
+  # R5 drops csmGetDrawableRenderOrders, which Ren'Py 8.5 needs; R4.1 is
+  # also the Core Lust in Suburbs ships with on desktop.
+  CUBISM_SDK: "CubismSdkForNative-5-r.4.1"
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        env:
+          GAMES: ${{ inputs.games }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          games = [
+            {"id": "saga20", "name": "SummertimeSaga", "bundle": "com.damir.summertimesaga020", "renpy": "7.8.7", "live2d": False,
+             "mega": "https://mega.nz/#!AGMU2IRJ!MviBjFfW95I34xotAmH11KXlMBstn3MFvGK204MxFnM", "file": "-",
+             "extra": "https://files.catbox.moe/9h84hs.rpa"},
+          ]
+          want = os.environ.get("GAMES") or "all"
+          if want != "all":
+            ids = {w.strip() for w in want.split(",")}
+            games = [g for g in games if g["id"] in ids]
+          print("matrix=" + json.dumps({"include": games}))
+          PY
+
+  build:
+    needs: pick
+    runs-on: macos-26
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+    env:
+      RENPY_VERSION: ${{ matrix.renpy }}
+      PAGE: ${{ matrix.page }}
+      UPLOAD: ${{ matrix.upload }}
+      MEGA: ${{ matrix.mega }}
+      LANG_NAME: ${{ matrix.translate }}
+      MEGA_FILE: ${{ matrix.file }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the Ren'Py SDK and its iOS kit
+        run: |
+          set -euo pipefail
+          curl -sSfL -o sdk.tar.bz2 "https://www.renpy.org/dl/${RENPY_VERSION}/renpy-${RENPY_VERSION}-sdk.tar.bz2"
+          tar xjf sdk.tar.bz2 && rm sdk.tar.bz2
+          cd "renpy-${RENPY_VERSION}-sdk"
+          curl -sSfL -o renios.zip "https://www.renpy.org/dl/${RENPY_VERSION}/renpy-${RENPY_VERSION}-renios.zip"
+          unzip -q renios.zip && rm renios.zip
+          # Before 8.5 the launcher's ios_create runs without a GUI through
+          # RAPT's text interface, so the Android kit has to be there too.
+          if [ "${RENPY_VERSION%%.*}.$(echo "$RENPY_VERSION" | cut -d. -f2)" != "8.5" ]; then
+            curl -sSfL -o rapt.zip "https://www.renpy.org/dl/${RENPY_VERSION}/renpy-${RENPY_VERSION}-rapt.zip"
+            unzip -q rapt.zip && rm rapt.zip
+          fi
+          ls lib renios
+          echo "SDK=$PWD" >> "$GITHUB_ENV"
+
+      - name: Download Live2D Cubism Core
+        if: matrix.live2d
+        run: |
+          set -euo pipefail
+          curl -sSfL -o cubism.zip "https://cubism.live2d.com/sdk-native/bin/${CUBISM_SDK}.zip"
+          unzip -q cubism.zip "${CUBISM_SDK}/Core/*" && rm cubism.zip
+          core="$PWD/${CUBISM_SDK}/Core"
+          cp "$core/dll/macos/libLive2DCubismCore.dylib" "$SDK/lib/py3-mac-universal/"
+          echo "CUBISM_IOS_LIB=$core/lib/ios/Release-iphoneos/libLive2DCubismCore.a" >> "$GITHUB_ENV"
+          lipo -info "$core/lib/ios/Release-iphoneos/libLive2DCubismCore.a"
+
+      - name: Download the game
+        run: |
+          set -euo pipefail
+          mkdir -p dl && cd dl
+          if [ -n "$MEGA" ]; then
+            pip3 install -q --break-system-packages cryptography
+            python3 ../tools/megafolder.py "$MEGA" "$MEGA_FILE" game.pkg
+          else
+            ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+            # itch.io answers the first request from a new address with 429.
+            for i in 1 2 3 4 5 6; do
+              code=$(curl -s -c cj -b cj -A "$ua" -o page.html -w "%{http_code}" "$PAGE")
+              [ "$code" = 200 ] && break
+              sleep 5
+            done
+            csrf=$(grep -o 'name="csrf_token" value="[^"]*"' page.html | head -1 | sed 's/.*value="//;s/"$//')
+            for i in 1 2 3 4 5 6; do
+              reply=$(curl -s -c cj -b cj -A "$ua" -e "$PAGE" -X POST --data-urlencode "csrf_token=$csrf" \
+                "$PAGE/file/$UPLOAD?source=view_game&as_props=1&after_download_lightbox=true")
+              echo "$reply" | grep -q '"url"' && break
+              sleep 5
+            done
+            url=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['url'])")
+            curl -sSL -A "$ua" -o game.pkg "$url"
+          fi
+          if unzip -tq game.pkg >/dev/null 2>&1; then unzip -q game.pkg; else tar xjf game.pkg; fi
+          rm game.pkg
+          # Only game/ goes into the project: the build's own engine and
+          # libraries are the desktop ones.
+          mkdir -p ../proj
+          mv */game ../proj/game
+          cd .. && rm -rf dl
+          if [ -n "${{ matrix.shrink }}" ]; then
+            pip3 install -q --break-system-packages pillow
+            du -sh proj/game
+            python3 tools/rpa.py proj/game/images.rpa proj/game && rm proj/game/images.rpa
+            python3 tools/shrink_images.py proj/game "${{ matrix.shrink }}"
+          fi
+          # Extra files for game/ (a translation pack, say).
+          if [ -n "${{ matrix.extra }}" ]; then
+            # (ru.rpa is the community Russian pack for 0.20, kept on catbox:
+            # summertimesaga.com refuses downloads from Actions runners.)
+            for u in ${{ matrix.extra }}; do curl -sSfL -o "proj/game/$(basename "$u")" "$u"; done
+            ls -la proj/game | head
+          fi
+          if ls "games/${{ matrix.id }}/mod/"*.rpy >/dev/null 2>&1; then cp "games/${{ matrix.id }}/mod/"*.rpy proj/game/; fi
+          cat proj/game/script_version.txt; echo
+          # The game's window icon is the iOS icon.
+          [ -f proj/game/gui/window_icon.png ] && sips -s format png -z 1024 1024 proj/game/gui/window_icon.png --out proj/ios-icon.png >/dev/null
+          du -sh proj
+
+      - name: Translation template and translation
+        if: matrix.translate
+        env:
+          LANG_NAME: ${{ matrix.translate }}
+        run: |
+          set -euo pipefail
+          id="${{ matrix.id }}"
+          if [ -f "games/$id/ci/tldump.rpy" ]; then
+            # The game is built without Ren'Py's translation identifiers, so
+            # its text is dumped by a build-time command and translated
+            # through a text filter (see games/<id>/make_tl.py).
+            cp "games/$id/ci/tldump.rpy" proj/game/zz_tldump_ci.rpy
+            "$SDK/renpy.sh" "$PWD/proj" tldump "$PWD/tldump.json" > translate.log 2>&1 || { tail -30 translate.log; exit 1; }
+            grep tldump: translate.log || true
+            rm -f proj/game/zz_tldump_ci.rpy*
+            mkdir -p "proj/game/tl/$LANG_NAME" template
+            python3 "games/$id/make_tl.py" tldump.json "proj/game/tl/$LANG_NAME" proj/game \
+              "games/$id/ru_stable.json" games/$id/ru/*.json
+            cp tldump.json template/
+          else
+            "$SDK/renpy.sh" "$PWD/proj" translate "$LANG_NAME" > translate.log 2>&1 || { tail -30 translate.log; exit 1; }
+            tail -5 translate.log
+            cp -R "proj/game/tl/$LANG_NAME" template
+            if [ -d "games/$id/tl/$LANG_NAME" ]; then
+              cp -R "games/$id/tl/$LANG_NAME/." "proj/game/tl/$LANG_NAME/"
+              echo "translation added"
+            fi
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.translate
+        with:
+          name: ${{ matrix.id }}-tl-template
+          path: template
+          retention-days: 1
+
+      - name: Run the game once
+        if: matrix.id != 'saga20'
+        run: |
+          set +e
+          "$SDK/renpy.sh" "$PWD/proj" --json-dump "$PWD/dump.json" quit > run.log 2>&1
+          echo "exit: $?"
+          tail -40 run.log
+          for f in proj/traceback.txt proj/errors.txt proj/log.txt; do [ -f "$f" ] && { echo "== $f"; tail -60 "$f"; }; done
+          true
+
+      - name: Write the Xcode project
+        run: |
+          set -euo pipefail
+          "$SDK/renpy.sh" "$SDK/launcher" ios_create "$PWD/proj" "$PWD/xc" 2>&1 | tail -40
+          ls xc
+          du -sh xc/base
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          cd xc
+          proj="$(find . -maxdepth 1 -name '*.xcodeproj' | head -1)"
+          # The scheme is named after the game ("Lust In Suburbs"), the
+          # project file without the spaces.
+          extra=()
+          if [ "${{ matrix.live2d }}" = "true" ]; then
+            extra=(OTHER_LDFLAGS='$(inherited) -lsharpyuv -Wl,-export_dynamic -Wl,-force_load,'"$CUBISM_IOS_LIB"
+                   STRIP_INSTALLED_PRODUCT=NO DEAD_CODE_STRIPPING=NO)
+          fi
+          scheme="$(xcodebuild -project "$proj" -list -json | python3 -c "import sys,json;print(json.load(sys.stdin)['project']['schemes'][0])")"
+          echo "scheme: $scheme"
+          xcodebuild -project "$proj" -scheme "$scheme" -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -derivedDataPath dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            PRODUCT_BUNDLE_IDENTIFIER="${{ matrix.bundle }}" \
+            ${extra[@]+"${extra[@]}"} \
+            build > build.log 2>&1 || { grep -E "error" build.log | head -40; tail -20 build.log; exit 1; }
+          tail -3 build.log
+          app="$(find dd/Build/Products -name '*.app' -maxdepth 2 | head -1)"
+          echo "app: $app"
+          # Ren'Py finds the Live2D Core with dlsym on the executable, so its
+          # functions must be exported.
+          if [ "${{ matrix.live2d }}" = "true" ]; then
+          bin="$app/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          echo "csm in the symbol table: $(nm -gU "$bin" | grep -c csm || true)"
+          echo "csm in the exports: $(dyld_info -exports "$bin" | grep -c csm || true)"
+          dyld_info -exports "$bin" | grep csm | head -5 || true
+          grep -oE -- "-(no_exported_symbols|exported_symbols_list|export_dynamic|force_load)[^ ]*" build.log | sort | uniq -c
+          dyld_info -exports "$bin" | grep -q csmGetDrawableRenderOrders || { echo "::error::Cubism Core isn't exported"; exit 1; }
+          fi
+          mkdir -p ipa/Payload
+          cp -R "$app" ipa/Payload/
+          (cd ipa && zip -qry ../${{ matrix.name }}.ipa Payload)
+          ls -la ${{ matrix.name }}.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.id }}-logs
+          path: |
+            run.log
+            proj/*.txt
+            xc/build.log
+          retention-days: 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.id }}-ipa
+          path: xc/${{ matrix.name }}.ipa
+          retention-days: 1
+
+      - name: Upload the IPA to gofile.io
+        run: |
+          set -euo pipefail
+          server=$(curl -sS https://api.gofile.io/servers | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['servers'][0]['name'])")
+          reply=$(curl -sS -F "file=@xc/${{ matrix.name }}.ipa" "https://$server.gofile.io/contents/uploadfile")
+          link=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['data']['downloadPage'])")
+          echo "${{ matrix.name }}: $link" | tee -a "$GITHUB_STEP_SUMMARY"
