@@ -268,7 +268,7 @@ jobs:
           cp -R games/godot-shell gshell
           if [ -f "games/$ID/icon.png" ]; then cp "games/$ID/icon.png" gshell/icon.png; else
             # The cover on the game's itch.io page, cropped square.
-            cover="$(python3 -c "import re,sys;print(re.search(r'<meta[^>]*?(?:content=\"([^\"]+)\"[^>]*property=\"og:image\"|property=\"og:image\"[^>]*content=\"([^\"]+)\")', open('game/page.html').read()).group(1) or '')")"
+            cover="$(python3 -c "import re;m=re.search(r'<meta[^>]*?(?:content=\"([^\"]+)\"[^>]*property=\"og:image\"|property=\"og:image\"[^>]*content=\"([^\"]+)\")', open('game/page.html').read()); print(m.group(1) or m.group(2))")""
             curl -sSfL -o cover.img "$cover"
             sips -s format png cover.img --out cover.png > /dev/null
             w=$(sips -g pixelWidth cover.png | awk '/pixelWidth/{print $2}'); h=$(sips -g pixelHeight cover.png | awk '/pixelHeight/{print $2}')
