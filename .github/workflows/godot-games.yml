@@ -46,8 +46,64 @@ jobs:
           print("matrix=" + json.dumps({"include": games}))
           PY
 
-  build:
+  videos:
+    # The game plays its .mp4 files through GDE GoZen, which has no iOS
+    # library; games/<id>/mod has a VideoPlayback on Godot's own
+    # VideoStreamPlayer, which reads Theora by content, so each video is
+    # re-encoded under its own name. (Homebrew's FFmpeg has no Theora.)
     needs: pick
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        if: matrix.videos
+      - name: Re-encode the videos as Ogg Theora
+        if: matrix.videos
+        env:
+          PAGE: ${{ matrix.page }}
+          UPLOAD: ${{ matrix.upload }}
+        run: |
+          set -euo pipefail
+          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg unar >/dev/null
+          ffmpeg -hide_banner -encoders | grep -q libtheora
+          mkdir -p game && cd game
+          ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -c cj -b cj -A "$ua" -o page.html -w "%{http_code}" "$PAGE")
+            [ "$code" = 200 ] && break
+            sleep 5
+          done
+          csrf=$(grep -o 'name="csrf_token" value="[^"]*"' page.html | head -1 | sed 's/.*value="//;s/"$//')
+          for i in 1 2 3 4 5 6; do
+            reply=$(curl -s -c cj -b cj -A "$ua" -e "$PAGE" -X POST --data-urlencode "csrf_token=$csrf" \
+              "$PAGE/file/$UPLOAD?source=view_game&as_props=1&after_download_lightbox=true")
+            echo "$reply" | grep -q '"url"' && break
+            sleep 5
+          done
+          url=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['url'])")
+          curl -sSL -A "$ua" -o game.pkg "$url"
+          if unzip -tq game.pkg >/dev/null 2>&1; then unzip -q game.pkg; else unar -q -o . game.pkg; fi
+          cd ..
+          pack="$(find game -name '*.pck' | head -1)"
+          mkdir -p videos out
+          python3 -c "import sys; sys.path.insert(0, 'tools'); import pck; print(pck.extract(sys.argv[1], 'videos', lambda p: p.endswith('.mp4')))" "$pack"
+          (cd videos && find . -name '*.mp4' | sed 's|^\./||') > videos.txt
+          conv() { mkdir -p "out/$(dirname "$1")"; ffmpeg -nostdin -loglevel error -i "videos/$1" -c:v libtheora -q:v 7 -c:a libvorbis -q:a 4 -f ogg "out/$1"; }
+          export -f conv
+          xargs -P 4 -I{} bash -c 'conv "$1"' _ {} < videos.txt
+          echo "videos: $(wc -l < videos.txt), re-encoded: $(find out -name '*.mp4' | wc -l)"
+          du -sh videos out
+      - uses: actions/upload-artifact@v4
+        if: matrix.videos
+        with:
+          name: ${{ matrix.id }}-videos
+          path: out
+          retention-days: 1
+
+  build:
+    needs: [pick, videos]
     runs-on: macos-26
     timeout-minutes: 60
     strategy:
@@ -141,26 +197,11 @@ jobs:
           fi
           ls -la
 
-      - name: Re-encode the videos as Ogg Theora
+      - uses: actions/download-artifact@v4
         if: matrix.videos
-        run: |
-          set -euo pipefail
-          # The game plays its .mp4 files through GDE GoZen, which has no iOS
-          # library; games/<id>/mod has a VideoPlayback on Godot's own
-          # VideoStreamPlayer, which reads Theora by content, so each video
-          # is re-encoded under its own name.
-          command -v ffmpeg >/dev/null || brew install -q ffmpeg
-          ffmpeg -hide_banner -encoders | grep -q libtheora
-          mkdir -p videos patch
-          python3 -c "import sys; sys.path.insert(0, 'tools'); import pck; print(pck.extract(sys.argv[1], 'videos', lambda p: p.endswith('.mp4')))" "game/$PCK"
-          (cd videos && find . -name '*.mp4' | sed 's|^\./||') > videos.txt
-          wc -l videos.txt
-          conv() { mkdir -p "patch/$(dirname "$1")"; ffmpeg -nostdin -loglevel error -i "videos/$1" -c:v libtheora -q:v 7 -c:a libvorbis -q:a 4 -f ogg "patch/$1"; }
-          export -f conv
-          xargs -P 4 -I{} bash -c 'conv "$1"' _ {} < videos.txt
-          find patch -name '*.mp4' | wc -l
-          du -sh videos patch
-          rm -rf videos
+        with:
+          name: ${{ matrix.id }}-videos
+          path: patch
 
       - name: Keep the game's dialogue for translation
         if: matrix.id == 'towns'
