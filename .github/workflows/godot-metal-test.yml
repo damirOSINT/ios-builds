@@ -1,0 +1,54 @@
+name: godot-metal-test
+
+# Runs a Godot pack on the runner's Metal device and uploads what it drew.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pack:
+        description: "URL of the .pck"
+        required: true
+      out:
+        description: "URL prefix to upload the frames and the log to"
+        required: true
+      scene:
+        description: "Scene to run"
+        default: ""
+      godot:
+        description: "Godot version"
+        default: "4.6.2"
+
+jobs:
+  run:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - name: Download Godot and the pack
+        env:
+          V: ${{ inputs.godot }}
+          PACK: ${{ inputs.pack }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$PACK"
+          curl -sSfL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/${V}-stable/Godot_v${V}-stable_macos.universal.zip"
+          unzip -q godot.zip
+          curl -sSfL -A "curl/8" -o game.pck "$PACK"
+          ls -la game.pck
+          system_profiler SPDisplaysDataType | head -20
+
+      - name: Run
+        env:
+          SCENE: ${{ inputs.scene }}
+          OUT: ${{ inputs.out }}
+        run: |
+          set +e
+          echo "::add-mask::$OUT"
+          ./Godot.app/Contents/MacOS/Godot --main-pack "$PWD/game.pck" --rendering-driver metal --rendering-method mobile --resolution 1280x592 --audio-driver Dummy $SCENE > run.log 2>&1 &
+          pid=$!
+          for i in $(seq 1 60); do sleep 8; kill -0 $pid 2>/dev/null || break; done
+          kill -9 $pid 2>/dev/null
+          tail -c 4000 run.log
+          find "$HOME/Library/Application Support/Godot" -name '*.png' | while IFS= read -r f; do
+            curl -s -o /dev/null -w "%{http_code}\n" --data-binary @"$f" "$OUT/$(basename "$f")"
+          done
+          curl -s -o /dev/null -w "%{http_code}\n" --data-binary @run.log "$OUT/run.log"
