@@ -1,0 +1,142 @@
+name: web-games
+
+# Builds HTML5 games from itch.io (free ones) as unsigned iOS apps: the
+# game's web files (from an NW.js build's package.nw, or a Capacitor APK's
+# assets/public) go into the www/ folder of webshell/, a full-screen web view
+# that serves them through app://. A game can have a translation script
+# (tr, run on www/). Nothing of the games is stored in this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Games to build, comma-separated ids, or all"
+        default: "all"
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        env:
+          GAMES: ${{ inputs.games }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          games = [
+            {"id": "coco", "name": "Cocomilk", "file": "Cocomilk", "bundle": "com.damir.cocomilk", "version": "3.0.0",
+             "page": "https://hypnosheepy.itch.io/cocogoat-cocomilk", "upload": "20167054",
+             "kind": "apk", "tr": "games/coco/tr.py", "icon": "icon.ico", "orient": "all"},
+          ]
+          want = os.environ.get("GAMES") or "all"
+          if want != "all":
+            ids = {w.strip() for w in want.split(",")}
+            games = [g for g in games if g["id"] in ids]
+          print("matrix=" + json.dumps({"include": games}))
+          PY
+
+  build:
+    needs: pick
+    runs-on: macos-26
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+    env:
+      PAGE: ${{ matrix.page }}
+      UPLOAD: ${{ matrix.upload }}
+      KIND: ${{ matrix.kind }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the game from itch.io
+        run: |
+          set -euo pipefail
+          mkdir -p dl && cd dl
+          ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          # itch.io answers the first request from a new address with 429.
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -c cj -b cj -A "$ua" -o page.html -w "%{http_code}" "$PAGE")
+            [ "$code" = 200 ] && break
+            sleep 5
+          done
+          csrf=$(grep -o 'name="csrf_token" value="[^"]*"' page.html | head -1 | sed 's/.*value="//;s/"$//')
+          for i in 1 2 3 4 5 6; do
+            reply=$(curl -s -c cj -b cj -A "$ua" -e "$PAGE" -X POST --data-urlencode "csrf_token=$csrf" \
+              "$PAGE/file/$UPLOAD?source=view_game&as_props=1&after_download_lightbox=true")
+            echo "$reply" | grep -q '"url"' && break
+            sleep 5
+          done
+          url=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['url'])")
+          curl -sSL -A "$ua" -o game.zip "$url"
+          unzip -q game.zip && rm game.zip
+          if [ "$KIND" = apk ]; then
+            cp -R assets/public ../www
+          else
+            nw="$(find . -name package.nw | head -1)"
+            mkdir -p ../www
+            unzip -q "$nw" -d ../www
+          fi
+          cd .. && rm -rf dl
+          ls www
+          # A Construct game exported for NW.js starts in its NW.js mode, and in
+          # worker mode with an OffscreenCanvas; neither works reliably in a
+          # web view on iOS, so it's switched to a plain HTML5 export running
+          # on the page.
+          if [ -f www/scripts/main.js ]; then
+            python3 - <<'PY'
+          import re
+          p = "www/scripts/main.js"
+          s = open(p, encoding="utf-8").read()
+          s, n1 = re.subn(r'As:"nwjs"', 'As:"html5"', s)
+          s, n2 = re.subn(r'(const \w+=)!0(;window\.c3_runtimeInterface=new self\.\w+\(\{ns:)', r'\1!1\2', s)
+          open(p, "w", encoding="utf-8").write(s)
+          print("export type patched:", n1, "worker mode off:", n2)
+          PY
+          fi
+
+      - name: Translate
+        if: matrix.tr
+        run: python3 "${{ matrix.tr }}" www
+
+      - name: Build the app
+        env:
+          NAME: ${{ matrix.name }}
+          FILE: ${{ matrix.file }}
+          BUNDLE: ${{ matrix.bundle }}
+          VERSION: ${{ matrix.version }}
+          ICON: ${{ matrix.icon }}
+          ORIENT: ${{ matrix.orient || 'landscape' }}
+        run: |
+          set -euo pipefail
+          app="ipa/Payload/$FILE.app"
+          mkdir -p "$app"
+          xcrun -sdk iphoneos swiftc -target arm64-apple-ios15.0 -O -parse-as-library \
+            webshell/main.swift -o "$app/Game"
+          sed -e "s|@NAME@|$NAME|" -e "s|@BUNDLE@|$BUNDLE|" -e "s|@VERSION@|$VERSION|" webshell/Info.plist.in > "$app/Info.plist"
+          if [ "$ORIENT" = all ]; then
+            for k in UISupportedInterfaceOrientations "UISupportedInterfaceOrientations~ipad"; do
+              plutil -insert "$k.0" -string UIInterfaceOrientationPortrait "$app/Info.plist"
+            done
+          fi
+          plutil -convert binary1 "$app/Info.plist"
+          if [ -n "$ICON" ]; then
+            sips -s format png "www/$ICON" --out icon.png >/dev/null
+            icon=icon.png
+          else
+            icon="$(ls www/icons/icon-512.png www/icons/*.png 2>/dev/null | head -1)"
+          fi
+          sips -s format png -z 120 120 "$icon" --out "$app/AppIcon60x60@2x.png" >/dev/null
+          sips -s format png -z 180 180 "$icon" --out "$app/AppIcon60x60@3x.png" >/dev/null
+          cp -R www "$app/www"
+          (cd ipa && zip -qry "../$FILE.ipa" Payload)
+          ls -la "$FILE.ipa"
+          file "$app/Game"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.id }}-ipa
+          path: ${{ matrix.file }}.ipa
+          retention-days: 3
