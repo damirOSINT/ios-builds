@@ -1,8 +1,8 @@
 name: web-games
 
 # Builds HTML5 games from itch.io (free ones) as unsigned iOS apps: the
-# game's web files (from an NW.js build's package.nw, or a Capacitor APK's
-# assets/public) go into the www/ folder of webshell/, a full-screen web view
+# game's web files (from an NW.js build's package.nw, a Capacitor APK's
+# assets/public, or a plain web build: the folder with index.html) go into the www/ folder of webshell/, a full-screen web view
 # that serves them through app://. A game can have a translation script
 # (tr, run on www/). Nothing of the games is stored in this repository.
 
@@ -29,6 +29,9 @@ jobs:
             {"id": "coco", "name": "Cocomilk", "file": "Cocomilk", "bundle": "com.damir.cocomilk", "version": "3.0.0",
              "page": "https://hypnosheepy.itch.io/cocogoat-cocomilk", "upload": "20167054",
              "kind": "apk", "tr": "games/coco/tr.py", "icon": "icon.ico", "orient": "all"},
+            {"id": "lac", "name": "Love&Corruption", "file": "LoveAndCorruption", "bundle": "com.damir.loveandcorruption", "version": "0.4.14",
+             "url": "https://drive.usercontent.google.com/download?id=1yCGdd-gt0HiaFXIK8QtPhNUiNzjWEfnL&export=download&confirm=t",
+             "kind": "web", "icon": "assets/favicon.png", "orient": "all"},
           ]
           want = os.environ.get("GAMES") or "all"
           if want != "all":
@@ -48,6 +51,7 @@ jobs:
       PAGE: ${{ matrix.page }}
       UPLOAD: ${{ matrix.upload }}
       KIND: ${{ matrix.kind }}
+      URL: ${{ matrix.url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +60,9 @@ jobs:
           set -euo pipefail
           mkdir -p dl && cd dl
           ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          # Some authors host the download elsewhere (url); otherwise it's an
+          # itch.io upload.
+          if [ -z "$URL" ]; then
           # itch.io answers the first request from a new address with 429.
           for i in 1 2 3 4 5 6; do
             code=$(curl -s -c cj -b cj -A "$ua" -o page.html -w "%{http_code}" "$PAGE")
@@ -70,10 +77,15 @@ jobs:
             sleep 5
           done
           url=$(echo "$reply" | python3 -c "import sys,json;print(json.load(sys.stdin)['url'])")
+          else
+            url=$URL
+          fi
           curl -sSL -A "$ua" -o game.zip "$url"
           unzip -q game.zip && rm game.zip
           if [ "$KIND" = apk ]; then
             cp -R assets/public ../www
+          elif [ "$KIND" = web ]; then
+            mv "$(dirname "$(find . -name index.html | awk '{print length, $0}' | sort -n | head -1 | cut -d' ' -f2-)")" ../www
           else
             nw="$(find . -name package.nw | head -1)"
             mkdir -p ../www
