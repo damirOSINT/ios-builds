@@ -2,7 +2,7 @@ name: web-games
 
 # Builds HTML5 games from itch.io (free ones) as unsigned iOS apps: the
 # game's web files (from an NW.js build's package.nw, a Capacitor APK's
-# assets/public, or a plain web build: the folder with index.html) go into the www/ folder of webshell/, a full-screen web view
+# assets/public, or a plain web build: the folder with its page) go into the www/ folder of webshell/, a full-screen web view
 # that serves them through app://. A game can have a translation script
 # (tr, run on www/). Nothing of the games is stored in this repository.
 
@@ -85,7 +85,11 @@ jobs:
           if [ "$KIND" = apk ]; then
             cp -R assets/public ../www
           elif [ "$KIND" = web ]; then
-            mv "$(dirname "$(find . -name index.html | awk '{print length, $0}' | sort -n | head -1 | cut -d' ' -f2-)")" ../www
+            # The page may have another name than index.html (Twine exports).
+            page="$(find . -name index.html | head -1)"
+            [ -n "$page" ] || page="$(find . -name '*.html' -exec ls -S {} + | head -1)"
+            mv "$(dirname "$page")" ../www
+            [ -f ../www/index.html ] || mv "../www/$(basename "$page")" ../www/index.html
           else
             nw="$(find . -name package.nw | head -1)"
             mkdir -p ../www
