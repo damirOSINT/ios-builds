@@ -32,6 +32,9 @@ jobs:
             {"id": "lac", "name": "Love&Corruption", "file": "LoveAndCorruption", "bundle": "com.damir.loveandcorruption", "version": "0.4.14",
              "url": "https://drive.usercontent.google.com/download?id=1yCGdd-gt0HiaFXIK8QtPhNUiNzjWEfnL&export=download&confirm=t",
              "kind": "web", "icon": "assets/favicon.png", "orient": "all"},
+            {"id": "lampa", "name": "Lampa", "file": "Lampa", "bundle": "com.damir.lampa", "version": "1.0",
+             "url": "https://codeload.github.com/yumata/lampa/zip/refs/heads/main",
+             "kind": "web", "icon": "icons/android-chrome-384x384.png", "orient": "all", "ats": "open"},
           ]
           want = os.environ.get("GAMES") or "all"
           if want != "all":
@@ -125,6 +128,7 @@ jobs:
           VERSION: ${{ matrix.version }}
           ICON: ${{ matrix.icon }}
           ORIENT: ${{ matrix.orient || 'landscape' }}
+          ATS: ${{ matrix.ats }}
         run: |
           set -euo pipefail
           app="ipa/Payload/$FILE.app"
@@ -136,6 +140,14 @@ jobs:
             for k in UISupportedInterfaceOrientations "UISupportedInterfaceOrientations~ipad"; do
               plutil -insert "$k.0" -string UIInterfaceOrientationPortrait "$app/Info.plist"
             done
+          fi
+          # Apps that talk to servers of the user's choice over plain http
+          # (Lampa's plugins, a TorrServer on the LAN) need ATS opened.
+          if [ "$ATS" = open ]; then
+            plutil -insert NSAppTransportSecurity -dictionary "$app/Info.plist"
+            plutil -insert NSAppTransportSecurity.NSAllowsArbitraryLoads -bool YES "$app/Info.plist"
+            plutil -insert NSAppTransportSecurity.NSAllowsArbitraryLoadsInWebContent -bool YES "$app/Info.plist"
+            plutil -insert NSAppTransportSecurity.NSAllowsLocalNetworking -bool YES "$app/Info.plist"
           fi
           plutil -convert binary1 "$app/Info.plist"
           if [ -n "$ICON" ]; then
